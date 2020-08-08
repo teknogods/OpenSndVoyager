@@ -1,0 +1,34 @@
+version: 1.0.0.{build}
+image: Visual Studio 2017
+configuration: Release
+# Do not build on tags (GitHub only)
+skip_tags: true
+platform:
+- Win32
+  
+before_build:
+- cmd: premake5.exe vs2017
+- ps: >-
+    Get-Content .\OpenSndVoyager\src\OpenSndVoyager.rc | ForEach-Object { $_ -replace "1.0.0.0", $env:appveyor_build_version } | Set-Content .\OpenSndVoyager\src\OpenSndVoyager2.rc
+    
+    del .\OpenSndVoyager\src\OpenSndVoyager.rc
+    
+    mv .\OpenSndVoyager\src\OpenSndVoyager2.rc .\OpenSndVoyager\src\OpenSndVoyager.rc
+
+build:
+  project: OpenSndVoyager.sln
+  verbosity: minimal
+
+artifacts:
+- path: build\bin\release\output\
+  name: OpenSndVoyager
+deploy:
+- provider: GitHub
+  tag: OpenSndVoyager
+  release: $(APPVEYOR_BUILD_VERSION)
+  description: $(APPVEYOR_REPO_COMMIT_MESSAGE)
+  auth_token:
+    secure: a2B+6mDTHuBa0fw8nm739eGJIZBcZp0IenhKvvXvreLR6ZUoHg9pflMP8ahNUK6o
+  repository: teknogods/OpenSndVoyager
+  artifact: build\bin\release\OpenSndVoyager.zip
+  force_update: true
