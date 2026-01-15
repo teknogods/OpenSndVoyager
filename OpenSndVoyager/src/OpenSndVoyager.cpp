@@ -24,28 +24,6 @@ void CloseLogging();
 void info(const char* format, ...);
 void StopAllChannels();
 
-// Global Synchronization
-CRITICAL_SECTION g_csStream;
-
-// DLL entry point
-BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
-{
-	switch (ul_reason_for_call)
-	{
-	case DLL_PROCESS_ATTACH:
-		InitLogging();
-		InitializeCriticalSection(&g_csStream);
-		info("DllMain: DLL_PROCESS_ATTACH");
-		break;
-	case DLL_PROCESS_DETACH:
-		info("DllMain: DLL_PROCESS_DETACH");
-		DeleteCriticalSection(&g_csStream);
-		CloseLogging();
-		break;
-	}
-	return TRUE;
-}
-
 // === Enhanced Logging System ===
 static FILE* g_logFile = NULL;
 static BOOL g_enableFileLogging = TRUE;
@@ -67,14 +45,14 @@ void InitLogging()
 		buf[len] = '\\';
 		strcat_s(buf, "stv\\logs\\");
 		CreateDirectoryA(buf, NULL);
-		
+
 		time_t now = time(NULL);
 		struct tm timeinfo;
 		localtime_s(&timeinfo, &now);
 		sprintf_s(logPath, "%sOpenSndVoyager_%04d%02d%02d_%02d%02d%02d.log", buf,
 			timeinfo.tm_year + 1900, timeinfo.tm_mon + 1, timeinfo.tm_mday,
 			timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
-		
+
 		fopen_s(&g_logFile, logPath, "w");
 		if (g_logFile)
 		{
@@ -111,7 +89,7 @@ void info(const char* format, ...)
 		buffer[len + 1] = '\0';
 
 		OutputDebugStringA(buffer);
-		
+
 		if (g_logFile)
 		{
 			fprintf(g_logFile, "[%06d] %s", g_frameCounter, buffer);
@@ -122,6 +100,28 @@ void info(const char* format, ...)
 #else
 #define info(x, ...) {}
 #endif
+
+// Global Synchronization
+CRITICAL_SECTION g_csStream;
+
+// DLL entry point
+BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
+{
+	switch (ul_reason_for_call)
+	{
+	case DLL_PROCESS_ATTACH:
+		InitLogging();
+		InitializeCriticalSection(&g_csStream);
+		info("DllMain: DLL_PROCESS_ATTACH");
+		break;
+	case DLL_PROCESS_DETACH:
+		info("DllMain: DLL_PROCESS_DETACH");
+		DeleteCriticalSection(&g_csStream);
+		CloseLogging();
+		break;
+	}
+	return TRUE;
+}
 
 // === Music-specific logging macros ===
 #define LOG_MUSIC(fmt, ...) info("[MUSIC] " fmt, __VA_ARGS__)
