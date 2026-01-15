@@ -10,13 +10,13 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <xaudio2.h>
+#include <dsound.h>
 
 #define CHECK_HR(exp) { HRESULT hr = exp; if (FAILED(hr)) { info("failed %s: %08x\n", #exp, hr); abort(); } }
 
 #define CHANNELS 0x21
 #define SAMPLES 266
-#define MUTE_MUSIC TRUE
+#define MUTE_MUSIC FALSE
 
 // Opcodes (0x0804e120)
 #define OC_SET_LUP_CNTL      0X80    // 0x8048E80 uint set_lup_cntl(int param_1)
@@ -118,42 +118,13 @@
 #define OC_SEQSTARTVOICE     0XE0    // 0x80498D4 uint SeqStartVoice(int param_1)
 #define OC_DIAGNOSTIC        0XE1    // 0x804999C uint Diagnostic(void)
 
-class XA2Callback : public IXAudio2VoiceCallback
-{
-public:
-	void __stdcall OnVoiceProcessingPassStart(UINT32 BytesRequired) override
-	{
-	}
-
-	void __stdcall OnVoiceProcessingPassEnd() override
-	{
-	}
-
-	void __stdcall OnStreamEnd() override
-	{
-	}
-
-	void __stdcall OnBufferStart(void*) override
-	{
-	}
-
-	void __stdcall OnLoopEnd(void*) override
-	{
-	}
-
-	void __stdcall OnVoiceError(void*, HRESULT) override
-	{
-	}
-
-	void __stdcall OnBufferEnd(void* cxt) override;
-
-public:
-	BYTE channel;
-};
-
+extern "C" {
 __declspec(dllexport) void snd_init_new(DWORD level);
 __declspec(dllexport) void snd_code_always(INT code);
 __declspec(dllexport) void sndPlay(INT code);
+__declspec(dllexport) void snd_get_channel_status();
+__declspec(dllexport) void snd_analyze_code(INT code);
+}
 
 // Declarations
 struct BUFFER;

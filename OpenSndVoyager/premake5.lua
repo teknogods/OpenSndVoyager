@@ -13,6 +13,14 @@ project "OpenSndVoyager"
 
 	includedirs { "src" }
 
+	defines { 
+		"VOYAGER_VER_MAJOR=1", 
+		"VOYAGER_VER_MINOR=0", 
+		"VOYAGER_VER_BUILD=0", 
+		"VOYAGER_VER_REV=0",
+		"VOYAGER_VER_STR=\"1.0.0.0\""
+	}
+
 postbuildcommands {
   "if not exist $(TargetDir)output mkdir $(TargetDir)output",
   "{COPY} $(TargetDir)OpenSndVoyager.dll $(TargetDir)output/"
